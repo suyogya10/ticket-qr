@@ -137,9 +137,6 @@ export default function DashboardSidebar({ userEmail }: SidebarProps) {
           </Button>
         </div>
       </aside>
-
-      {/* Spacer for mobile layout so content is not hidden behind the header */}
-      <div className="h-16 md:hidden w-full block" />
     </>
   )
 }

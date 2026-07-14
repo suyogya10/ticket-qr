@@ -22,10 +22,10 @@ export default async function DashboardLayout({
       {/* Sidebar Component */}
       <DashboardSidebar userEmail={user.email || ''} />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col md:pl-64">
-        <main className="flex flex-1 flex-col justify-between min-h-screen px-4 py-8 sm:px-6 md:px-8">
-          <div className="flex-1">
+      {/* Main Content Area — pt-16 offsets the fixed mobile header; md:pl-64 offsets the fixed desktop sidebar */}
+      <div className="flex flex-1 flex-col pt-16 md:pt-0 md:pl-64 min-w-0">
+        <main className="flex flex-1 flex-col justify-between min-h-screen px-4 py-6 sm:px-6 md:px-8 md:py-8">
+          <div className="flex-1 min-w-0">
             {children}
           </div>
           <footer className="mt-12 pt-6 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400">
