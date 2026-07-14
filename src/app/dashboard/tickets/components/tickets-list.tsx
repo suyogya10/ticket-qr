@@ -216,13 +216,14 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
     })
   }
 
-  // Generate WhatsApp link
-  const getWhatsAppShareUrl = (ticket: Ticket) => {
+  // WhatsApp Share Handler
+  const handleWhatsAppShare = (ticket: Ticket) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
     const verificationUrl = `${origin}/ticket/${ticket.uuid}`
-    const message = `Hello ${ticket.full_name}! 👋\n\nThank you for your payment. Here is your entry pass:\n🎫 Ticket ID: #${String(ticket.id).padStart(5, '0')}\n👥 Attendees: ${ticket.adults} Adults, ${ticket.kids} Kids\n💰 Paid: $${Number(ticket.amount_paid).toFixed(2)}\n\nLink to display QR code at gate:\n🔗 ${verificationUrl}`
+    const message = `Hello ${ticket.full_name}!\n\nThank you for your payment. Here is your entry pass:\n🎫 Ticket ID: #${String(ticket.id).padStart(5, '0')}\n- Attendees: ${ticket.adults} Adults, ${ticket.kids} Kids\n- Paid: $${Number(ticket.amount_paid).toFixed(2)}\n\nLink to display QR code at gate:\n👉 ${verificationUrl}`
     const cleanPhone = ticket.phone.replace(/[^0-9+]/g, '')
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   // Search and Filter Logic
@@ -344,16 +345,15 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                           </Button>
 
                           {/* WhatsApp share */}
-                          <a href={getWhatsAppShareUrl(ticket)} target="_blank" rel="noopener noreferrer">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Share via WhatsApp"
-                              className="h-8 w-8 hover:text-emerald-600 cursor-pointer"
-                            >
-                              <Phone className="h-4 w-4" />
-                            </Button>
-                          </a>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleWhatsAppShare(ticket)}
+                            title="Share via WhatsApp"
+                            className="h-8 w-8 hover:text-emerald-600 cursor-pointer"
+                          >
+                            <Phone className="h-4 w-4" />
+                          </Button>
 
                           {/* Edit button */}
                           <Button

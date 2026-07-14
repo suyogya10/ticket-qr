@@ -185,17 +185,17 @@ export default function NewTicketPage() {
     }
   }
 
-  // WhatsApp Share Url
-  const getWhatsAppShareUrl = () => {
-    if (!createdTicket) return ''
+  // WhatsApp Share Handler
+  const handleWhatsAppShare = () => {
+    if (!createdTicket) return
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
     const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
-    const message = `Hello ${createdTicket.full_name}! 👋\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\n🎫 Ticket ID: #${String(createdTicket.id).padStart(5, '0')}\n👥 Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n💰 Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n🔗 ${verificationUrl}\n\nHave a great time!`
+    const message = `Hello ${createdTicket.full_name}!\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\n🎫 Ticket ID: #${String(createdTicket.id).padStart(5, '0')}\n- Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n- Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n👉 ${verificationUrl}\n\nHave a great time!`
     
     // Format phone number to clean it from spaces, dashes, parentheses
     const cleanPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
-    
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -324,19 +324,13 @@ export default function NewTicketPage() {
                   Download PDF Receipt
                 </Button>
 
-                <a 
-                  href={getWhatsAppShareUrl()} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="block w-full"
+                <Button 
+                  onClick={handleWhatsAppShare}
+                  className="w-full justify-start gap-3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                 >
-                  <Button 
-                    className="w-full justify-start gap-3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                  >
-                    <Phone className="h-5 w-5 fill-current" />
-                    Send via WhatsApp
-                  </Button>
-                </a>
+                  <Phone className="h-5 w-5 fill-current" />
+                  Send via WhatsApp
+                </Button>
               </CardContent>
               <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
                 <span className="text-xs font-semibold text-slate-500">Verification Link:</span>
