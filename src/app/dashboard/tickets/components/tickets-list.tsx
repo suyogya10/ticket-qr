@@ -107,14 +107,14 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
       })
       const imgData = canvas.toDataURL('image/png')
       
+      const imgWidth = 148
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a5'
+        format: [imgWidth, imgHeight] // Fit page dimensions to the ticket exactly
       })
-      
-      const imgWidth = 148
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`ticket-${String(ticket.id).padStart(5, '0')}.pdf`)

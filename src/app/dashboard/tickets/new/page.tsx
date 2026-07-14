@@ -167,14 +167,14 @@ export default function NewTicketPage() {
       })
       const imgData = canvas.toDataURL('image/png')
       
+      const imgWidth = 148 // base width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a5' // A5 is a perfect receipt/ticket dimension
+        format: [imgWidth, imgHeight] // Fit page dimensions to the ticket exactly
       })
-      
-      const imgWidth = 148 // A5 width
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`ticket-${String(createdTicket.id).padStart(5, '0')}.pdf`)
