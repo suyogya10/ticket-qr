@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -97,6 +97,15 @@ export default async function PublicTicketPage({ params }: PageProps) {
 
         {/* Verification Status Card */}
         <Card className="border-slate-200 shadow-xl overflow-hidden rounded-2xl dark:border-slate-800">
+          {/* Event Banner */}
+          <div className="relative h-28 overflow-hidden border-b border-slate-100 dark:border-slate-800">
+            <img 
+              src="/ticket.jpg" 
+              alt="Event Banner" 
+              className="object-cover w-full h-full"
+            />
+          </div>
+
           {/* Status Indicator Banner */}
           <div className={`flex flex-col items-center justify-center p-6 border-b text-center ${statusConfig.color}`}>
             <StatusIcon className="h-12 w-12 mb-3" />
@@ -107,7 +116,7 @@ export default async function PublicTicketPage({ params }: PageProps) {
           <CardContent className="p-6 space-y-6 bg-white dark:bg-slate-900">
             {/* QR Code Container */}
             <div className="flex flex-col items-center justify-center py-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
-              <QRCodeSVG
+              <QRCodeCanvas
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${ticket.uuid}`}
                 size={140}
                 level="M"
@@ -173,6 +182,19 @@ export default async function PublicTicketPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Footer Credit */}
+        <p className="mt-6 text-center text-xs text-slate-400">
+          Developed by{' '}
+          <a 
+            href="https://www.linkedin.com/in/suyogya-gautam-3882b1212/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-cyan-600 font-medium transition-colors"
+          >
+            Suyogya Gautam
+          </a>
+        </p>
       </div>
     </main>
   )

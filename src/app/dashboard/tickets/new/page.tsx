@@ -8,9 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import confetti from 'canvas-confetti'
 import { 
   PlusCircle, 
@@ -215,6 +215,15 @@ export default function NewTicketPage() {
               ref={ticketRef}
               className="w-full max-w-[380px] border border-slate-200 bg-white p-6 shadow-md rounded-2xl dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden"
             >
+              {/* Ticket Banner Image */}
+              <div className="relative -mx-6 -mt-6 mb-6 h-28 overflow-hidden rounded-t-2xl border-b border-slate-100 dark:border-slate-800">
+                <img 
+                  src="/ticket.jpg" 
+                  alt="Event Banner" 
+                  className="object-cover w-full h-full"
+                />
+              </div>
+
               {/* Clinical design pattern with dotted separation */}
               <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-6 text-center dark:border-slate-800">
                 <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-2" />
@@ -227,7 +236,7 @@ export default function NewTicketPage() {
 
               {/* QR Code Container */}
               <div className="flex flex-col items-center justify-center py-6 border-b border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 my-1 rounded-xl">
-                <QRCodeSVG
+                <QRCodeCanvas
                   value={`${typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/${createdTicket.uuid}`}
                   size={160}
                   level="H"

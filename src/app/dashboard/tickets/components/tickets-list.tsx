@@ -33,7 +33,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 
 interface Ticket {
   id: number
@@ -289,7 +289,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
                   {filteredTickets.map((ticket) => (
-                    <tr key={ticket.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/5">
+                    <tr key={ticket.id} className="group hover:bg-slate-50/40 dark:hover:bg-slate-800/5">
                       <td className="py-4 px-4 font-mono text-xs text-slate-700 dark:text-slate-350">
                         #{String(ticket.id).padStart(5, '0')}
                       </td>
@@ -362,7 +362,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                             size="icon"
                             onClick={() => setDeleteTicket(ticket)}
                             title="Delete Ticket"
-                            className="h-8 w-8 hover:text-red-650 cursor-pointer"
+                            className="h-8 w-8 hover:text-red-650 cursor-pointer md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -536,7 +536,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
 
           {qrTicket && (
             <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 my-2">
-              <QRCodeSVG
+              <QRCodeCanvas
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${qrTicket.uuid}`}
                 size={180}
                 level="H"
@@ -603,11 +603,20 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
 
       {/* Hidden offscreen Ticket render for PDF/PNG download from list */}
       {qrTicket && (
-        <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+        <div style={{ position: 'fixed', top: 0, left: '-9999px', width: '380px', height: 'auto', zIndex: -100 }}>
           <div 
             ref={ticketRef}
             className="w-[380px] border border-slate-200 bg-white p-6 rounded-2xl text-slate-900 text-left"
           >
+            {/* Ticket Banner Image */}
+            <div className="relative -mx-6 -mt-6 mb-6 h-28 overflow-hidden rounded-t-2xl border-b border-slate-100">
+              <img 
+                src="/ticket.jpg" 
+                alt="Event Banner" 
+                className="object-cover w-full h-full"
+              />
+            </div>
+
             <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-6 text-center">
               <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Payment Confirmed</span>
               <h2 className="text-xl font-bold text-slate-950 mt-1">🎫 Entry Pass</h2>
@@ -617,7 +626,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
             </div>
 
             <div className="flex flex-col items-center justify-center py-6 border-b border-dashed border-slate-200 bg-slate-50/50 my-1 rounded-xl">
-              <QRCodeSVG
+              <QRCodeCanvas
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${qrTicket.uuid}`}
                 size={160}
                 level="H"

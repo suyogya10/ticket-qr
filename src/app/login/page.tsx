@@ -115,6 +115,17 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
+        <p className="mt-8 text-center text-xs text-slate-405">
+          Developed by{' '}
+          <a 
+            href="https://www.linkedin.com/in/suyogya-gautam-3882b1212/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-cyan-600 font-medium transition-colors"
+          >
+            Suyogya Gautam
+          </a>
+        </p>
       </div>
     </main>
   )
