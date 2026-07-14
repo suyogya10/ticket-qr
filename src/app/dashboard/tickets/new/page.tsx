@@ -190,7 +190,7 @@ export default function NewTicketPage() {
     if (!createdTicket) return
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
     const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
-    const message = `Hello ${createdTicket.full_name}!\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\n🎫 Ticket ID: #${String(createdTicket.id).padStart(5, '0')}\n- Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n- Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n👉 ${verificationUrl}\n\nHave a great time!`
+    const message = `Hello ${createdTicket.full_name}!\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\nTicket ID: #${String(createdTicket.id).padStart(5, '0')}\n- Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n- Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n${verificationUrl}\n\nHave a great time!`
     
     // Format phone number to clean it from spaces, dashes, parentheses
     const cleanPhone = createdTicket.phone.replace(/[^0-9+]/g, '')

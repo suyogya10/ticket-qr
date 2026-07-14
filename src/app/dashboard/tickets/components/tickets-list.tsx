@@ -220,7 +220,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const handleWhatsAppShare = (ticket: Ticket) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
     const verificationUrl = `${origin}/ticket/${ticket.uuid}`
-    const message = `Hello ${ticket.full_name}!\n\nThank you for your payment. Here is your entry pass:\n🎫 Ticket ID: #${String(ticket.id).padStart(5, '0')}\n- Attendees: ${ticket.adults} Adults, ${ticket.kids} Kids\n- Paid: $${Number(ticket.amount_paid).toFixed(2)}\n\nLink to display QR code at gate:\n👉 ${verificationUrl}`
+    const message = `Hello ${ticket.full_name}!\n\nThank you for your payment. Here is your entry pass:\nTicket ID: #${String(ticket.id).padStart(5, '0')}\n- Attendees: ${ticket.adults} Adults, ${ticket.kids} Kids\n- Paid: $${Number(ticket.amount_paid).toFixed(2)}\n\nLink to display QR code at gate:\n${verificationUrl}`
     const cleanPhone = ticket.phone.replace(/[^0-9+]/g, '')
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank', 'noopener,noreferrer')
