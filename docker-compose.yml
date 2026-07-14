@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      # Keep container's node_modules and .next cache isolated from WSL host files
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    # Enable hot reloading watching inside Docker containers
+    stdin_open: true
+    tty: true
