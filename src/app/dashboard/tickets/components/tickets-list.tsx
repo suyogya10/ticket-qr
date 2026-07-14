@@ -682,7 +682,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
             </div>
 
             <div className="text-center pt-2 text-[9px] text-slate-400 border-t border-dashed border-slate-200">
-              Created: {new Date(qrTicket.created_at).toLocaleString()}
+              Created: {new Date(qrTicket.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'medium', timeStyle: 'short' })}
             </div>
           </div>
         </div>

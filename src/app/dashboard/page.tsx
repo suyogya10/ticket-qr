@@ -39,9 +39,15 @@ export default async function DashboardPage() {
   // Stats calculation
   const totalTickets = tickets.length
   
-  const startOfToday = new Date()
-  startOfToday.setHours(0, 0, 0, 0)
-  const todaysTickets = tickets.filter(t => new Date(t.created_at) >= startOfToday).length
+  // Get the start of today in Australia/Sydney timezone bounds
+  const sydneyNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' }))
+  const startOfSydneyToday = new Date(sydneyNow)
+  startOfSydneyToday.setHours(0, 0, 0, 0)
+  
+  const todaysTickets = tickets.filter(t => {
+    const ticketSydneyTime = new Date(new Date(t.created_at).toLocaleString('en-US', { timeZone: 'Australia/Sydney' }))
+    return ticketSydneyTime >= startOfSydneyToday
+  }).length
 
   const totalRevenue = tickets
     .filter(t => t.status !== 'CANCELLED')

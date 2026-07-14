@@ -179,7 +179,7 @@ export default async function PublicTicketPage({ params }: PageProps) {
                   Purchase Date
                 </span>
                 <span className="text-slate-500 dark:text-slate-400 text-xs">
-                  {new Date(ticket.created_at).toLocaleString()}
+                  {new Date(ticket.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'medium', timeStyle: 'short' })}
                 </span>
               </div>
             </div>

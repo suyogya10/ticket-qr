@@ -293,7 +293,7 @@ export default function NewTicketPage() {
 
               {/* Footer Stamp */}
               <div className="text-center pt-2 text-[9px] text-slate-400 border-t border-dashed border-slate-200 dark:border-slate-800">
-                Created: {new Date(createdTicket.created_at).toLocaleString()}
+                Created: {new Date(createdTicket.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'medium', timeStyle: 'short' })}
               </div>
             </div>
           </div>
