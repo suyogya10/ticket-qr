@@ -18,17 +18,20 @@ export const revalidate = 0 // Disable cache for real-time dashboard data
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  // Fetch all tickets for statistics calculation
-  const { data: allTickets } = await supabase
-    .from('tickets')
-    .select('amount_paid, adults, kids, created_at, status')
+  // Fetch statistics and recent tickets in parallel to prevent sequential network waterfalls
+  const [allTicketsResult, recentTicketsResult] = await Promise.all([
+    supabase
+      .from('tickets')
+      .select('amount_paid, adults, kids, created_at, status'),
+    supabase
+      .from('tickets')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5)
+  ])
 
-  // Fetch 5 newest tickets
-  const { data: recentTickets } = await supabase
-    .from('tickets')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(5)
+  const allTickets = allTicketsResult.data
+  const recentTickets = recentTicketsResult.data
 
   const tickets = allTickets || []
   const recent = recentTickets || []

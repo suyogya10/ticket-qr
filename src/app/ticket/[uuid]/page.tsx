@@ -40,10 +40,14 @@ export default async function PublicTicketPage({ params }: PageProps) {
 
   const supabase = await createClient()
 
-  // Execute secure RPC query - bypasses RLS for anon to allow single-row lookup by UUID
-  const { data, error } = await supabase.rpc('get_public_ticket', {
-    ticket_uuid: uuid,
-  })
+  // Execute secure RPC query and retrieve logged-in status in parallel
+  const [ticketResult, authResult] = await Promise.all([
+    supabase.rpc('get_public_ticket', { ticket_uuid: uuid }),
+    supabase.auth.getUser()
+  ])
+
+  const { data, error } = ticketResult
+  const { data: { user } } = authResult
 
   // If error occurs or no ticket is found, trigger the custom 404 handler
   if (error || !data || data.length === 0) {
@@ -51,9 +55,6 @@ export default async function PublicTicketPage({ params }: PageProps) {
   }
 
   const ticket = data[0] as PublicTicket
-
-  // Retrieve logged-in event staff status
-  const { data: { user } } = await supabase.auth.getUser()
   const isStaff = !!user
 
   // Status visual maps
