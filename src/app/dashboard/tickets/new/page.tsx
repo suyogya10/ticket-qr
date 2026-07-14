@@ -9,8 +9,6 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { QRCodeCanvas } from 'qrcode.react'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
 import confetti from 'canvas-confetti'
 import { 
   PlusCircle, 
@@ -132,17 +130,22 @@ export default function NewTicketPage() {
   const downloadPNG = async () => {
     if (!ticketRef.current || !createdTicket) return
     try {
-      const canvas = await html2canvas(ticketRef.current, {
+      const html2canvasModule = await import('html2canvas')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      
+      const canvas = await html2canvasFn(ticketRef.current, {
         scale: 2, // improve quality
         backgroundColor: '#ffffff',
-        useCORS: true
+        useCORS: true,
+        allowTaint: true
       })
       const link = document.createElement('a')
       link.download = `ticket-${String(createdTicket.id).padStart(5, '0')}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
       toast.success('PNG downloaded!')
-    } catch {
+    } catch (err) {
+      console.error(err)
       toast.error('Failed to export PNG')
     }
   }
@@ -151,14 +154,19 @@ export default function NewTicketPage() {
   const downloadPDF = async () => {
     if (!ticketRef.current || !createdTicket) return
     try {
-      const canvas = await html2canvas(ticketRef.current, {
+      const html2canvasModule = await import('html2canvas')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      
+      const { jsPDF } = await import('jspdf')
+      
+      const canvas = await html2canvasFn(ticketRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
-        useCORS: true
+        useCORS: true,
+        allowTaint: true
       })
       const imgData = canvas.toDataURL('image/png')
       
-      // dimensions in mm
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -171,7 +179,8 @@ export default function NewTicketPage() {
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`ticket-${String(createdTicket.id).padStart(5, '0')}.pdf`)
       toast.success('PDF downloaded!')
-    } catch {
+    } catch (err) {
+      console.error(err)
       toast.error('Failed to export PDF')
     }
   }
@@ -213,43 +222,43 @@ export default function NewTicketPage() {
           <div className="md:col-span-3 flex justify-center">
             <div 
               ref={ticketRef}
-              className="w-full max-w-[380px] border border-slate-200 bg-white p-6 shadow-md rounded-2xl dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden"
+              className="w-full max-w-[380px] border border-slate-200 bg-white p-5 shadow-md rounded-2xl dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden"
             >
               {/* Ticket Banner Image */}
-              <div className="relative -mx-6 -mt-6 mb-6 h-28 overflow-hidden rounded-t-2xl border-b border-slate-100 dark:border-slate-800">
+              <div className="w-[calc(100%+2.5rem)] -mx-5 -mt-5 mb-4 overflow-hidden rounded-t-2xl border-b border-slate-100 dark:border-slate-800 bg-slate-950 flex justify-center items-center">
                 <img 
                   src="/ticket.jpg" 
                   alt="Event Banner" 
-                  className="object-cover w-full h-full"
+                  className="w-full h-auto object-contain block"
                 />
               </div>
 
               {/* Clinical design pattern with dotted separation */}
-              <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-6 text-center dark:border-slate-800">
-                <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-2" />
+              <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-3.5 text-center dark:border-slate-800">
+                <CheckCircle2 className="h-9 w-9 text-emerald-500 mb-1.5" />
                 <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Payment Confirmed</span>
-                <h2 className="text-xl font-bold text-slate-950 dark:text-slate-50 mt-1">🎫 Entry Pass</h2>
+                <h2 className="text-lg font-bold text-slate-955 dark:text-slate-50 mt-0.5">🎫 Entry Pass</h2>
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
                   Ticket ID: #{String(createdTicket.id).padStart(5, '0')}
                 </p>
               </div>
 
               {/* QR Code Container */}
-              <div className="flex flex-col items-center justify-center py-6 border-b border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 my-1 rounded-xl">
+              <div className="flex flex-col items-center justify-center py-4 border-b border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 my-1 rounded-xl">
                 <QRCodeCanvas
                   value={`${typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/${createdTicket.uuid}`}
-                  size={160}
+                  size={140}
                   level="H"
                   includeMargin={true}
                   className="bg-white p-2 rounded-lg border border-slate-100"
                 />
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-mono uppercase tracking-wider">
+                <span className="text-[10px] text-slate-400 dark:text-slate-505 mt-1.5 font-mono uppercase tracking-wider">
                   Scan at Gate for verification
                 </span>
               </div>
 
               {/* Ticket Details */}
-              <div className="py-4 space-y-3 text-sm">
+              <div className="py-3 space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Name</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-100">{createdTicket.full_name}</span>
@@ -266,7 +275,7 @@ export default function NewTicketPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Amount Paid</span>
-                  <span className="font-bold text-slate-950 dark:text-slate-50">${Number(createdTicket.amount_paid).toFixed(2)}</span>
+                  <span className="font-bold text-slate-955 dark:text-slate-50">${Number(createdTicket.amount_paid).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Method</span>
@@ -275,7 +284,7 @@ export default function NewTicketPage() {
                   </span>
                 </div>
                 {createdTicket.remarks && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 pb-3">
                     <p className="text-xs text-slate-400">Remarks:</p>
                     <p className="text-xs italic text-slate-600 dark:text-slate-300 mt-0.5">{createdTicket.remarks}</p>
                   </div>

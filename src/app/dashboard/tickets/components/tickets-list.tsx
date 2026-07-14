@@ -4,8 +4,6 @@ import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import { 
   Search, 
   Edit, 
@@ -72,17 +70,22 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const downloadPNG = async (ticket: Ticket) => {
     if (!ticketRef.current) return
     try {
-      const canvas = await html2canvas(ticketRef.current, {
+      const html2canvasModule = await import('html2canvas')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      
+      const canvas = await html2canvasFn(ticketRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
-        useCORS: true
+        useCORS: true,
+        allowTaint: true
       })
       const link = document.createElement('a')
       link.download = `ticket-${String(ticket.id).padStart(5, '0')}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
       toast.success('PNG downloaded!')
-    } catch {
+    } catch (err) {
+      console.error(err)
       toast.error('Failed to export PNG')
     }
   }
@@ -91,10 +94,16 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const downloadPDF = async (ticket: Ticket) => {
     if (!ticketRef.current) return
     try {
-      const canvas = await html2canvas(ticketRef.current, {
+      const html2canvasModule = await import('html2canvas')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      
+      const { jsPDF } = await import('jspdf')
+      
+      const canvas = await html2canvasFn(ticketRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
-        useCORS: true
+        useCORS: true,
+        allowTaint: true
       })
       const imgData = canvas.toDataURL('image/png')
       
@@ -110,7 +119,8 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`ticket-${String(ticket.id).padStart(5, '0')}.pdf`)
       toast.success('PDF downloaded!')
-    } catch {
+    } catch (err) {
+      console.error(err)
       toast.error('Failed to export PDF')
     }
   }
@@ -362,7 +372,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                             size="icon"
                             onClick={() => setDeleteTicket(ticket)}
                             title="Delete Ticket"
-                            className="h-8 w-8 hover:text-red-650 cursor-pointer md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/25 cursor-pointer transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -502,7 +512,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
       <Dialog open={deleteTicket !== null} onOpenChange={(open) => !open && setDeleteTicket(null)}>
         <DialogContent className="max-w-md border-slate-200 dark:border-slate-800">
           <DialogHeader>
-            <DialogTitle className="text-red-650 flex items-center gap-2">
+            <DialogTitle className="text-red-600 flex items-center gap-2">
               ⚠️ Revoke & Delete Ticket?
             </DialogTitle>
             <DialogDescription>
@@ -517,7 +527,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
               type="button" 
               onClick={handleDeleteConfirm}
               disabled={isPending} 
-              className="bg-red-650 hover:bg-red-700 text-white cursor-pointer"
+              className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
             >
               {isPending ? 'Deleting...' : 'Confirm Delete'}
             </Button>
@@ -606,39 +616,39 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
         <div style={{ position: 'fixed', top: 0, left: '-9999px', width: '380px', height: 'auto', zIndex: -100 }}>
           <div 
             ref={ticketRef}
-            className="w-[380px] border border-slate-200 bg-white p-6 rounded-2xl text-slate-900 text-left"
+            className="w-[380px] border border-slate-200 bg-white p-5 rounded-2xl text-slate-900 text-left"
           >
             {/* Ticket Banner Image */}
-            <div className="relative -mx-6 -mt-6 mb-6 h-28 overflow-hidden rounded-t-2xl border-b border-slate-100">
+            <div className="w-[calc(100%+2.5rem)] -mx-5 -mt-5 mb-4 overflow-hidden rounded-t-2xl border-b border-slate-100 bg-slate-950 flex justify-center items-center">
               <img 
                 src="/ticket.jpg" 
                 alt="Event Banner" 
-                className="object-cover w-full h-full"
+                className="w-full h-auto object-contain block"
               />
             </div>
 
-            <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-6 text-center">
+            <div className="flex flex-col items-center justify-center border-b border-dashed border-slate-200 pb-3.5 text-center">
               <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Payment Confirmed</span>
-              <h2 className="text-xl font-bold text-slate-950 mt-1">🎫 Entry Pass</h2>
+              <h2 className="text-lg font-bold text-slate-955 mt-0.5">🎫 Entry Pass</h2>
               <p className="text-xs font-mono text-slate-500 mt-0.5">
                 Ticket ID: #{String(qrTicket.id).padStart(5, '0')}
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-6 border-b border-dashed border-slate-200 bg-slate-50/50 my-1 rounded-xl">
+            <div className="flex flex-col items-center justify-center py-4 border-b border-dashed border-slate-200 bg-slate-50/50 my-1 rounded-xl">
               <QRCodeCanvas
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${qrTicket.uuid}`}
-                size={160}
+                size={140}
                 level="H"
                 includeMargin={true}
                 className="bg-white p-2 rounded-lg"
               />
-              <span className="text-[10px] text-slate-400 mt-2 font-mono uppercase tracking-wider">
+              <span className="text-[10px] text-slate-400 mt-1.5 font-mono uppercase tracking-wider">
                 Scan at Gate for verification
               </span>
             </div>
 
-            <div className="py-4 space-y-3 text-sm">
+            <div className="py-3 space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500">Name</span>
                 <span className="font-semibold text-slate-900">{qrTicket.full_name}</span>
@@ -664,7 +674,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                 </span>
               </div>
               {qrTicket.remarks && (
-                <div className="pt-2 border-t border-slate-100">
+                <div className="pt-2 border-t border-slate-100 pb-2">
                   <p className="text-xs text-slate-400">Remarks:</p>
                   <p className="text-xs italic text-slate-650 mt-0.5">{qrTicket.remarks}</p>
                 </div>

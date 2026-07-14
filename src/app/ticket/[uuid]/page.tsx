@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { QRCodeCanvas } from 'qrcode.react'
+import TicketQrCanvas from './components/ticket-qr-canvas'
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -98,11 +98,11 @@ export default async function PublicTicketPage({ params }: PageProps) {
         {/* Verification Status Card */}
         <Card className="border-slate-200 shadow-xl overflow-hidden rounded-2xl dark:border-slate-800">
           {/* Event Banner */}
-          <div className="relative h-28 overflow-hidden border-b border-slate-100 dark:border-slate-800">
+          <div className="w-full overflow-hidden border-b border-slate-100 dark:border-slate-800 bg-slate-950 flex justify-center items-center">
             <img 
               src="/ticket.jpg" 
               alt="Event Banner" 
-              className="object-cover w-full h-full"
+              className="w-full h-auto object-contain"
             />
           </div>
 
@@ -116,12 +116,9 @@ export default async function PublicTicketPage({ params }: PageProps) {
           <CardContent className="p-6 space-y-6 bg-white dark:bg-slate-900">
             {/* QR Code Container */}
             <div className="flex flex-col items-center justify-center py-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
-              <QRCodeCanvas
+              <TicketQrCanvas
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${ticket.uuid}`}
                 size={140}
-                level="M"
-                includeMargin={true}
-                className="bg-white p-2 rounded-lg border border-slate-100"
               />
               <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider mt-2">
                 Ticket ID: #{String(ticket.id).padStart(5, '0')}
