@@ -16,7 +16,9 @@ import {
   ChevronDown,
   Filter,
   Download,
-  Printer
+  Printer,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -57,6 +59,8 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
   const [isPending, startTransition] = useTransition()
 
   // Modal States
@@ -240,6 +244,17 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
     return matchesSearch && matchesStatus
   })
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredTickets.length / PAGE_SIZE))
+  const paginatedTickets = filteredTickets.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+
+  // Reset to page 1 on search/filter change
+  const handleSearch = (val: string) => { setSearch(val); setCurrentPage(1) }
+  const handleFilter = (val: string) => { setStatusFilter(val); setCurrentPage(1) }
+
   return (
     <div className="space-y-6">
       {/* Search and Filters Bar */}
@@ -249,7 +264,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
           <Input
             placeholder="Search by name, phone, ticket ID, UUID..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-9 h-10 border-slate-200 focus-visible:ring-cyan-500 focus-visible:border-cyan-500"
           />
         </div>
@@ -259,7 +274,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
           {['ALL', 'VALID', 'USED', 'CANCELLED'].map((filter) => (
             <button
               key={filter}
-              onClick={() => setStatusFilter(filter)}
+              onClick={() => handleFilter(filter)}
               className={`
                 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer
                 ${statusFilter === filter 
@@ -299,7 +314,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
-                  {filteredTickets.map((ticket) => (
+                  {paginatedTickets.map((ticket) => (
                     <tr key={ticket.id} className="group hover:bg-slate-50/40 dark:hover:bg-slate-800/5">
                       <td className="py-4 px-4 font-mono text-xs text-slate-700 dark:text-slate-350">
                         #{String(ticket.id).padStart(5, '0')}
@@ -386,6 +401,64 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Showing{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredTickets.length)}
+            </span>
+            {' '}of{' '}
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{filteredTickets.length}</span>
+            {' '}tickets
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-slate-200 cursor-pointer"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {/* Page number pills */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis')
+                acc.push(p)
+                return acc
+              }, [])
+              .map((item, idx) =>
+                item === 'ellipsis' ? (
+                  <span key={`e-${idx}`} className="px-1 text-slate-400 text-xs">…</span>
+                ) : (
+                  <Button
+                    key={item}
+                    variant={currentPage === item ? 'default' : 'outline'}
+                    size="icon"
+                    className={`h-8 w-8 text-xs cursor-pointer ${currentPage === item ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600 text-white' : 'border-slate-200'}`}
+                    onClick={() => setCurrentPage(item as number)}
+                  >
+                    {item}
+                  </Button>
+                )
+              )}
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-slate-200 cursor-pointer"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 1. EDIT DIALOG */}
       <Dialog open={editTicket !== null} onOpenChange={(open) => !open && setEditTicket(null)}>
