@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "QR Ticket & Payment Portal",
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster position="top-right" richColors />
+        <Analytics />
       </body>
     </html>
   );
