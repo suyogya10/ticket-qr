@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TicketQrCanvas from './components/ticket-qr-canvas'
+import CheckInButton from './components/check-in-button'
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -50,6 +51,10 @@ export default async function PublicTicketPage({ params }: PageProps) {
   }
 
   const ticket = data[0] as PublicTicket
+
+  // Retrieve logged-in event staff status
+  const { data: { user } } = await supabase.auth.getUser()
+  const isStaff = !!user
 
   // Status visual maps
   const statusConfig = {
@@ -177,6 +182,11 @@ export default async function PublicTicketPage({ params }: PageProps) {
                 </span>
               </div>
             </div>
+
+            {/* Check-In Button for Staff */}
+            {isStaff && ticket.status === 'VALID' && (
+              <CheckInButton ticketId={ticket.id} />
+            )}
           </CardContent>
         </Card>
 

@@ -70,7 +70,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const downloadPNG = async (ticket: Ticket) => {
     if (!ticketRef.current) return
     try {
-      const html2canvasModule = await import('html2canvas')
+      const html2canvasModule = await import('html2canvas-pro')
       const html2canvasFn = html2canvasModule.default || html2canvasModule
       
       const canvas = await html2canvasFn(ticketRef.current, {
@@ -94,7 +94,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const downloadPDF = async (ticket: Ticket) => {
     if (!ticketRef.current) return
     try {
-      const html2canvasModule = await import('html2canvas')
+      const html2canvasModule = await import('html2canvas-pro')
       const html2canvasFn = html2canvasModule.default || html2canvasModule
       
       const { jsPDF } = await import('jspdf')
