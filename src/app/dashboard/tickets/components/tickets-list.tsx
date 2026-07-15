@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -18,7 +18,8 @@ import {
   Download,
   Printer,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  MessageSquare
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -69,6 +70,10 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
   const [qrTicket, setQrTicket] = useState<Ticket | null>(null)
 
   const ticketRef = useRef<HTMLDivElement>(null)
+
+  // Resolve absolute site origin client-side to avoid SSR/hydration QR encoding bug
+  const [siteOrigin, setSiteOrigin] = useState('')
+  useEffect(() => { setSiteOrigin(window.location.origin) }, [])
 
   // PNG Export
   const downloadPNG = async (ticket: Ticket) => {
@@ -220,12 +225,40 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
     })
   }
 
+  // SMS Share Handler — generates PNG via native share sheet (MMS)
+  const handleSMSShare = async (ticket: Ticket) => {
+    if (!ticketRef.current) return
+    try {
+      const html2canvasModule = await import('html2canvas-pro')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      const canvas = await html2canvasFn(ticketRef.current, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true,
+      })
+      canvas.toBlob(async (blob) => {
+        if (!blob) return
+        const rawPhone = ticket.phone.replace(/[^0-9+]/g, '')
+        const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
+        const filename = `ticket-${String(ticket.id).padStart(5, '0')}.png`
+        const file = new File([blob], filename, { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Event Ticket' })
+        } else {
+          const link = document.createElement('a')
+          link.download = filename
+          link.href = canvas.toDataURL('image/png')
+          link.click()
+          const msg = `Hi ${ticket.full_name}, your ticket is confirmed! View QR: ${siteOrigin}/ticket/${ticket.uuid}`
+          setTimeout(() => { window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(msg)}` }, 500)
+        }
+      }, 'image/png')
+    } catch { toast.error('Could not share image') }
+  }
+
   // WhatsApp Share Handler
   const handleWhatsAppShare = (ticket: Ticket) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
+    const origin = siteOrigin || window.location.origin
     const verificationUrl = `${origin}/ticket/${ticket.uuid}`
     const message = `Hello ${ticket.full_name}!\n\nThank you for your payment. Here is your entry pass:\nTicket ID: #${String(ticket.id).padStart(5, '0')}\n- Attendees: ${ticket.adults} Adults, ${ticket.kids} Kids\n- Paid: $${Number(ticket.amount_paid).toFixed(2)}\n\nLink to display QR code at gate:\n${verificationUrl}`
-    // If no + prefix, assume Australia (+61) as default country code
     const rawPhone = ticket.phone.replace(/[^0-9+]/g, '')
     const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
@@ -611,7 +644,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
       </Dialog>
       {/* 3. QR PREVIEW MODAL */}
       <Dialog open={qrTicket !== null} onOpenChange={(open) => !open && setQrTicket(null)}>
-        <DialogContent className="max-w-[340px] flex flex-col items-center justify-center border-slate-200 dark:border-slate-800">
+        <DialogContent className="max-w-sm flex flex-col items-center justify-center border-slate-200 dark:border-slate-800">
           <DialogHeader className="w-full text-center">
             <DialogTitle>Ticket Pass QR</DialogTitle>
             <DialogDescription className="font-mono text-xs">
@@ -622,7 +655,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
           {qrTicket && (
             <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 my-2">
               <QRCodeCanvas
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${qrTicket.uuid}`}
+                value={siteOrigin ? `${siteOrigin}/ticket/${qrTicket.uuid}` : `https://ticket-qr-weld.vercel.app/ticket/${qrTicket.uuid}`}
                 size={180}
                 level="H"
                 includeMargin={true}
@@ -659,6 +692,22 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
               >
                 <Printer className="h-3.5 w-3.5 text-slate-500" />
                 PDF
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => handleWhatsAppShare(qrTicket)}
+                className="gap-1.5 text-xs h-9 cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 col-span-1"
+              >
+                <Phone className="h-3.5 w-3.5" />
+                WhatsApp
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => handleSMSShare(qrTicket)}
+                className="gap-1.5 text-xs h-9 cursor-pointer border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+              >
+                <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
+                SMS Image
               </Button>
             </div>
           )}
@@ -712,7 +761,7 @@ export default function TicketsList({ initialTickets }: TicketsListProps) {
 
             <div className="flex flex-col items-center justify-center py-4 border-b border-dashed border-slate-200 bg-slate-50/50 my-1 rounded-xl">
               <QRCodeCanvas
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${qrTicket.uuid}`}
+                value={siteOrigin ? `${siteOrigin}/ticket/${qrTicket.uuid}` : `https://ticket-qr-weld.vercel.app/ticket/${qrTicket.uuid}`}
                 size={140}
                 level="H"
                 includeMargin={true}

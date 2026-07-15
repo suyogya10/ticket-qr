@@ -63,6 +63,10 @@ export default function NewTicketPage() {
   
   const ticketRef = useRef<HTMLDivElement>(null)
 
+  // Resolve absolute site origin client-side to avoid SSR/hydration QR encoding bug
+  const [siteOrigin, setSiteOrigin] = useState('')
+  useEffect(() => { setSiteOrigin(window.location.origin) }, [])
+
   const {
     register,
     handleSubmit,
@@ -229,7 +233,7 @@ export default function NewTicketPage() {
   // WhatsApp Share Handler
   const handleWhatsAppShare = () => {
     if (!createdTicket) return
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
+    const origin = siteOrigin || window.location.origin
     const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
     const message = `Hello ${createdTicket.full_name}!\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\nTicket ID: #${String(createdTicket.id).padStart(5, '0')}\n- Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n- Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n${verificationUrl}\n\nHave a great time!`
     
@@ -306,7 +310,7 @@ export default function NewTicketPage() {
               <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
                 <span className="text-xs font-semibold text-slate-500">Verification Link:</span>
                 <code className="text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded block w-full overflow-x-auto select-all font-mono break-all text-slate-800 dark:text-slate-350">
-                  {typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/{createdTicket.uuid}
+                  {(siteOrigin || 'https://ticket-qr-weld.vercel.app')}/ticket/{createdTicket.uuid}
                 </code>
               </CardFooter>
             </Card>
@@ -347,7 +351,7 @@ export default function NewTicketPage() {
               {/* QR Code Container */}
               <div className="flex flex-col items-center justify-center py-4 border-b border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 my-1 rounded-xl">
                 <QRCodeCanvas
-                  value={`${typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/${createdTicket.uuid}`}
+                  value={siteOrigin ? `${siteOrigin}/ticket/${createdTicket.uuid}` : `https://ticket-qr-weld.vercel.app/ticket/${createdTicket.uuid}`}
                   size={140}
                   level="H"
                   includeMargin={true}
