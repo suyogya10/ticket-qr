@@ -39,14 +39,23 @@ export default async function DashboardPage() {
   // Stats calculation
   const totalTickets = tickets.length
   
-  // Get the start of today in Australia/Sydney timezone bounds
-  const sydneyNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' }))
-  const startOfSydneyToday = new Date(sydneyNow)
-  startOfSydneyToday.setHours(0, 0, 0, 0)
+  // Get the start of today in Australia/Sydney timezone bounds using clean Intl formatter
+  const sydneyDateFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+  
+  const sydneyTodayStr = sydneyDateFormatter.format(new Date())
   
   const todaysTickets = tickets.filter(t => {
-    const ticketSydneyTime = new Date(new Date(t.created_at).toLocaleString('en-US', { timeZone: 'Australia/Sydney' }))
-    return ticketSydneyTime >= startOfSydneyToday
+    try {
+      const ticketSydneyStr = sydneyDateFormatter.format(new Date(t.created_at))
+      return ticketSydneyStr === sydneyTodayStr
+    } catch {
+      return false
+    }
   }).length
 
   const totalRevenue = tickets

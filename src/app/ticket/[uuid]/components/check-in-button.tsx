@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Loader2, Check } from 'lucide-react'
@@ -10,6 +11,7 @@ interface CheckInButtonProps {
 }
 
 export default function CheckInButton({ ticketId }: CheckInButtonProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
@@ -31,10 +33,13 @@ export default function CheckInButton({ ticketId }: CheckInButtonProps) {
       toast.success('Check-in successful!')
       setIsSuccess(true)
       
+      // Update Server Component state instantly via router refresh
+      router.refresh()
+      
       // Reload page state to update indicators
       setTimeout(() => {
         window.location.reload()
-      }, 800)
+      }, 600)
     } catch (err: any) {
       console.error(err)
       toast.error(err.message || 'Failed to update ticket status')
