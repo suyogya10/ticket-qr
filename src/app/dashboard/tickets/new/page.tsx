@@ -218,8 +218,58 @@ export default function NewTicketPage() {
       {createdTicket ? (
         /* Success & Review Ticket Screen */
         <div className="grid gap-6 md:grid-cols-5">
-          {/* Ticket preview card (A5 format receipt style) */}
-          <div className="md:col-span-3 flex justify-center">
+          {/* Action buttons — shown FIRST on mobile, SECOND on desktop */}
+          <div className="md:col-span-2 space-y-4 order-first md:order-last">
+            <Card className="border-slate-200/80 shadow-xs dark:border-slate-800">
+              <CardHeader>
+                <CardTitle className="text-md">Actions</CardTitle>
+                <CardDescription>Share or download the ticket</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  onClick={downloadPNG} 
+                  variant="outline" 
+                  className="w-full justify-start gap-3 h-11 border-slate-250 hover:bg-slate-50 cursor-pointer"
+                >
+                  <Download className="h-5 w-5 text-slate-500" />
+                  Download PNG Image
+                </Button>
+                
+                <Button 
+                  onClick={downloadPDF} 
+                  variant="outline" 
+                  className="w-full justify-start gap-3 h-11 border-slate-250 hover:bg-slate-50 cursor-pointer"
+                >
+                  <Printer className="h-5 w-5 text-slate-500" />
+                  Download PDF Receipt
+                </Button>
+
+                <Button 
+                  onClick={handleWhatsAppShare}
+                  className="w-full justify-start gap-3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                >
+                  <Phone className="h-5 w-5 fill-current" />
+                  Send via WhatsApp
+                </Button>
+              </CardContent>
+              <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-500">Verification Link:</span>
+                <code className="text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded block w-full overflow-x-auto select-all font-mono whitespace-nowrap text-slate-800 dark:text-slate-350">
+                  {typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/{createdTicket.uuid}
+                </code>
+              </CardFooter>
+            </Card>
+
+            <Button 
+              onClick={() => setCreatedTicket(null)} 
+              className="w-full h-11 bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer"
+            >
+              Generate Another Ticket
+            </Button>
+          </div>
+
+          {/* Ticket preview card — shown SECOND on mobile, FIRST on desktop */}
+          <div className="md:col-span-3 flex justify-center order-last md:order-first">
             <div 
               ref={ticketRef}
               className="w-full max-w-[380px] border border-slate-200 bg-white p-5 shadow-md rounded-2xl dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden"
@@ -296,56 +346,6 @@ export default function NewTicketPage() {
                 Created: {new Date(createdTicket.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'medium', timeStyle: 'short' })}
               </div>
             </div>
-          </div>
-
-          {/* Action buttons on the right side */}
-          <div className="md:col-span-2 space-y-4">
-            <Card className="border-slate-200/80 shadow-xs dark:border-slate-800">
-              <CardHeader>
-                <CardTitle className="text-md">Actions</CardTitle>
-                <CardDescription>Share or download the ticket</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  onClick={downloadPNG} 
-                  variant="outline" 
-                  className="w-full justify-start gap-3 h-11 border-slate-250 hover:bg-slate-50 cursor-pointer"
-                >
-                  <Download className="h-5 w-5 text-slate-500" />
-                  Download PNG Image
-                </Button>
-                
-                <Button 
-                  onClick={downloadPDF} 
-                  variant="outline" 
-                  className="w-full justify-start gap-3 h-11 border-slate-250 hover:bg-slate-50 cursor-pointer"
-                >
-                  <Printer className="h-5 w-5 text-slate-500" />
-                  Download PDF Receipt
-                </Button>
-
-                <Button 
-                  onClick={handleWhatsAppShare}
-                  className="w-full justify-start gap-3 h-11 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                >
-                  <Phone className="h-5 w-5 fill-current" />
-                  Send via WhatsApp
-                </Button>
-              </CardContent>
-              <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
-                <span className="text-xs font-semibold text-slate-500">Verification Link:</span>
-                <code className="text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded block w-full overflow-x-auto select-all font-mono whitespace-nowrap text-slate-800 dark:text-slate-350">
-                  {typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/{createdTicket.uuid}
-                </code>
-              </CardFooter>
-            </Card>
-
-            <Button 
-              onClick={() => setCreatedTicket(null)} 
-              className="w-full h-11 bg-cyan-600 hover:bg-cyan-700 text-white cursor-pointer"
-            >
-              Generate Another Ticket
-            </Button>
           </div>
         </div>
       ) : (
