@@ -362,6 +362,14 @@ export default function NewTicketPage() {
                 </span>
               </div>
 
+              {/* Event Details */}
+              <div className="py-3 border-b border-dashed border-slate-200 dark:border-slate-800 text-center space-y-1 bg-slate-50/20 dark:bg-slate-900/10 rounded-xl my-1 p-2">
+                <span className="text-[9px] uppercase tracking-widest text-slate-400 font-semibold block">Event Details</span>
+                <div className="font-bold text-slate-900 dark:text-slate-50 text-sm">Third Eye Function Centre</div>
+                <div className="text-slate-500 dark:text-slate-400 text-xs">370 Princes Hwy, Banksia NSW 2216</div>
+                <div className="text-cyan-600 dark:text-cyan-400 font-semibold text-xs mt-0.5">16 Aug 2026 Sunday, 5:00 PM</div>
+              </div>
+
               {/* Ticket Details */}
               <div className="py-3 space-y-1.5 text-sm">
                 <div className="flex justify-between">
