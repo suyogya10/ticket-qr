@@ -188,16 +188,42 @@ export default function NewTicketPage() {
     }
   }
 
-  // SMS Share Handler
-  const handleSMSShare = () => {
-    if (!createdTicket) return
-    const rawPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
-    const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
-    const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
-    const message = `Hi ${createdTicket.full_name}, your ticket for the event is confirmed! Ticket ID: #${String(createdTicket.id).padStart(5, '0')}. Tap to view your QR pass at the gate: ${verificationUrl}`
-    // sms: URI works on iOS and Android to open native Messages app
-    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(message)}`
+  // SMS Share Handler — generates the ticket PNG and shares it via native share sheet
+  const handleSMSShare = async () => {
+    if (!createdTicket || !ticketRef.current) return
+    try {
+      const html2canvasModule = await import('html2canvas-pro')
+      const html2canvasFn = html2canvasModule.default || html2canvasModule
+      const canvas = await html2canvasFn(ticketRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: true,
+      })
+      canvas.toBlob(async (blob) => {
+        if (!blob) return
+        const rawPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
+        const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
+        const filename = `ticket-${String(createdTicket.id).padStart(5, '0')}.png`
+        const file = new File([blob], filename, { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          // Opens native share sheet (iOS/Android) — user picks Messages to send as MMS
+          await navigator.share({ files: [file], title: 'Event Ticket' })
+        } else {
+          // Fallback: download PNG then open SMS with link
+          const link = document.createElement('a')
+          link.download = filename
+          link.href = canvas.toDataURL('image/png')
+          link.click()
+          const origin = window.location.origin
+          const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
+          const msg = `Hi ${createdTicket.full_name}, your ticket is confirmed! View QR: ${verificationUrl}`
+          setTimeout(() => { window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(msg)}` }, 500)
+        }
+      }, 'image/png')
+    } catch (err) {
+      toast.error('Could not share image')
+    }
   }
 
   // WhatsApp Share Handler
@@ -215,7 +241,7 @@ export default function NewTicketPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+    <div className="space-y-6 max-w-4xl mx-auto pb-10 overflow-x-hidden">
       {/* Header and Back navigation */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="inline-flex cursor-pointer text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100">
@@ -235,7 +261,7 @@ export default function NewTicketPage() {
         /* Success & Review Ticket Screen */
         <div className="grid gap-6 md:grid-cols-5">
           {/* Action buttons — shown FIRST on mobile, SECOND on desktop */}
-          <div className="md:col-span-2 space-y-4 order-first md:order-last">
+          <div className="md:col-span-2 space-y-4 order-first md:order-last min-w-0">
             <Card className="border-slate-200/80 shadow-xs dark:border-slate-800">
               <CardHeader>
                 <CardTitle className="text-md">Actions</CardTitle>
@@ -279,7 +305,7 @@ export default function NewTicketPage() {
               </CardContent>
               <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
                 <span className="text-xs font-semibold text-slate-500">Verification Link:</span>
-                <code className="text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded block w-full overflow-x-auto select-all font-mono whitespace-nowrap text-slate-800 dark:text-slate-350">
+                <code className="text-[10px] bg-slate-100 dark:bg-slate-800 p-2 rounded block w-full overflow-x-auto select-all font-mono break-all text-slate-800 dark:text-slate-350">
                   {typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'}/ticket/{createdTicket.uuid}
                 </code>
               </CardFooter>
@@ -294,7 +320,7 @@ export default function NewTicketPage() {
           </div>
 
           {/* Ticket preview card — shown SECOND on mobile, FIRST on desktop */}
-          <div className="md:col-span-3 flex justify-center order-last md:order-first">
+          <div className="md:col-span-3 flex justify-center order-last md:order-first min-w-0">
             <div 
               ref={ticketRef}
               className="w-full max-w-[380px] border border-slate-200 bg-white p-5 shadow-md rounded-2xl dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden"
