@@ -192,8 +192,9 @@ export default function NewTicketPage() {
     const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
     const message = `Hello ${createdTicket.full_name}!\n\nThank you for your payment. Here is your digital entry ticket for the event:\n\nTicket ID: #${String(createdTicket.id).padStart(5, '0')}\n- Attendees: ${createdTicket.adults} Adults, ${createdTicket.kids} Kids\n- Paid: $${Number(createdTicket.amount_paid).toFixed(2)}\n\nClick the link below to verify and display your entry QR code at the gate:\n${verificationUrl}\n\nHave a great time!`
     
-    // Format phone number to clean it from spaces, dashes, parentheses
-    const cleanPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
+    // If no + prefix, assume Australia (+61) as default country code
+    const rawPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
+    const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank', 'noopener,noreferrer')
   }
