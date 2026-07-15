@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useTransition } from 'react'
+import { useState, useRef, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -19,7 +19,8 @@ import {
   Download, 
   Share2, 
   Phone, 
-  Printer 
+  Printer,
+  MessageSquare
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -123,6 +124,8 @@ export default function NewTicketPage() {
       toast.success('Ticket generated successfully!')
       setCreatedTicket(data as CreatedTicket)
       reset() // Reset form values
+      // Scroll to top so the actions card is immediately visible on mobile
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     })
   }
 
@@ -183,6 +186,18 @@ export default function NewTicketPage() {
       console.error(err)
       toast.error('Failed to export PDF')
     }
+  }
+
+  // SMS Share Handler
+  const handleSMSShare = () => {
+    if (!createdTicket) return
+    const rawPhone = createdTicket.phone.replace(/[^0-9+]/g, '')
+    const cleanPhone = rawPhone.startsWith('+') ? rawPhone : `+61${rawPhone}`
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://domain.com'
+    const verificationUrl = `${origin}/ticket/${createdTicket.uuid}`
+    const message = `Hi ${createdTicket.full_name}, your ticket for the event is confirmed! Ticket ID: #${String(createdTicket.id).padStart(5, '0')}. Tap to view your QR pass at the gate: ${verificationUrl}`
+    // sms: URI works on iOS and Android to open native Messages app
+    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(message)}`
   }
 
   // WhatsApp Share Handler
@@ -251,6 +266,15 @@ export default function NewTicketPage() {
                 >
                   <Phone className="h-5 w-5 fill-current" />
                   Send via WhatsApp
+                </Button>
+
+                <Button 
+                  onClick={handleSMSShare}
+                  variant="outline"
+                  className="w-full justify-start gap-3 h-11 border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 cursor-pointer"
+                >
+                  <MessageSquare className="h-5 w-5 text-blue-500" />
+                  Send via SMS
                 </Button>
               </CardContent>
               <CardFooter className="flex-col items-start gap-2 border-t border-slate-100 p-4 dark:border-slate-800">
