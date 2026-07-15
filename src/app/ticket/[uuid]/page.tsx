@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import TicketQrCanvas from './components/ticket-qr-canvas'
 import CheckInButton from './components/check-in-button'
@@ -37,6 +38,13 @@ export const revalidate = 0 // Ensure real-time gate validation matches the data
 export default async function PublicTicketPage({ params }: PageProps) {
   const resolvedParams = await params
   const { uuid } = resolvedParams
+
+  // Derive absolute base URL from request headers (works in both dev and production)
+  const headersList = await headers()
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'ticket-qr-weld.vercel.app'
+  const proto = headersList.get('x-forwarded-proto') || 'https'
+  const siteOrigin = `${proto}://${host}`
+  const ticketUrl = `${siteOrigin}/ticket/${uuid}`
 
   const supabase = await createClient()
 
@@ -123,7 +131,7 @@ export default async function PublicTicketPage({ params }: PageProps) {
             {/* QR Code Container */}
             <div className="flex flex-col items-center justify-center py-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800">
               <TicketQrCanvas
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket/${ticket.uuid}`}
+                value={ticketUrl}
                 size={140}
               />
               <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider mt-2">
